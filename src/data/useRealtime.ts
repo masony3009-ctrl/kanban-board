@@ -24,6 +24,9 @@ function idOf(record: unknown, key: string): string | null {
   return typeof value === 'string' ? value : null
 }
 
+// Supabase cannot filter DELETE events (a deleted row cannot be checked against
+// a policy), so every subscriber receives other guests' deleted primary keys.
+// Ignore the ones that match nothing in this guest's cache.
 function deleteAffectsThisGuest(
   queryClient: QueryClient,
   table: string,

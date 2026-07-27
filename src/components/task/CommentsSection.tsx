@@ -123,6 +123,8 @@ export function CommentsSection({ taskId }: { taskId: string }) {
                 aria-label="Delete comment"
                 disabled={saving}
                 onClick={() => setPendingDelete(comment.id)}
+                // Pointer events are withheld until the control is revealed, so
+                // a tap near a comment's edge cannot hit an invisible button.
                 className="focus-ring pointer-events-none mt-1 cursor-pointer rounded-md p-1.5 text-ink-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 hover:bg-surface-3 hover:text-danger focus-visible:pointer-events-auto focus-visible:opacity-100 disabled:cursor-not-allowed [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100"
               >
                 <Trash2 size={13} aria-hidden />

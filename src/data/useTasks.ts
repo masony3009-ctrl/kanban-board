@@ -29,6 +29,8 @@ const TASK_SELECT_PLAIN = '*, task_labels(label_id), task_assignees(member_id)'
 
 const TASK_MUTATION_KEY = ['task-mutation'] as const
 
+// Thrown when the task row committed but one of its junction inserts did not,
+// so the failure can be reported without discarding a card that exists.
 class PartialCreateError extends Error {}
 
 function mapTask(row: TaskJoinRow): Task {
@@ -55,6 +57,8 @@ function cachedTasks(queryClient: QueryClient): Task[] {
   return queryClient.getQueryData<Task[]>(queryKeys.tasks) ?? []
 }
 
+// Optimistic rows count here, so two cards created in quick succession get
+// distinct positions instead of colliding on the same value.
 function endPosition(tasks: Task[], status: Status, excludeId?: string): number {
   const positions = tasks
     .filter((t) => t.status === status && t.id !== excludeId)
@@ -79,7 +83,11 @@ export function taskMutationsInFlight(queryClient: QueryClient): number {
   return queryClient.isMutating({ mutationKey: TASK_MUTATION_KEY })
 }
 
+// Refetch only once the last task mutation settles. Invalidating while another
+// is still pending lets a response that predates its write overwrite the
+// optimistic patch, which shows up as cards jumping back mid-drag.
 function settle(queryClient: QueryClient): void {
+  // The mutation running this callback still counts as pending.
   if (taskMutationsInFlight(queryClient) > 1) return
   void queryClient.invalidateQueries({ queryKey: queryKeys.tasks })
   void queryClient.invalidateQueries({ queryKey: queryKeys.allActivity })
@@ -97,6 +105,8 @@ export function useTasks() {
 
       if (!error) return data.map(mapTask)
 
+      // Embedded aggregates can be disabled per project; the board works
+      // without comment counts, so fall back rather than fail outright.
       const { data: plain, error: plainError } = await supabase
         .from('tasks')
         .select(TASK_SELECT_PLAIN)
@@ -201,6 +211,8 @@ export interface UpdateTaskInput {
   title?: string
   description?: string
   status?: Status
+  // Required alongside `status`: distinguishes a real column change from
+  // re-picking the status the card already has, which must not move it.
   previousStatus?: Status
   priority?: Priority
   dueDate?: string | null
@@ -262,6 +274,8 @@ export interface MoveTaskInput {
   id: string
   status: Status
   position: number
+  // Snapshot taken before the board applied its own optimistic patch, so a
+  // failed move can still roll back to the pre-drag state.
   previous?: Task[]
 }
 
@@ -306,6 +320,7 @@ export interface RenumberInput {
   previous?: Task[]
 }
 
+// Only needed when repeated midpoint splits shrink a gap past float precision.
 export function useRenumberColumn() {
   const queryClient = useQueryClient()
   return useMutation({

@@ -1,5 +1,8 @@
 import { errorMessage } from './utils'
 
+// Database constraints are the last line of defence; the UI caps every input
+// first. If one still fires, raw PostgREST text is useless to a user, so the
+// known ones are mapped to plain language.
 const CONSTRAINT_MESSAGES: [string, string][] = [
   ['tasks_title_check', 'A card title must be between 1 and 500 characters.'],
   ['tasks_description_check', 'A card description must be 20,000 characters or fewer.'],

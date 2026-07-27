@@ -107,6 +107,8 @@ export function Board({ tasks, filters, labels, members, onOpenTask }: BoardProp
     return columns
   }, [ordered, filters])
 
+  // Non-null only mid-drag: a live preview that onDragOver mutates as the card
+  // crosses column boundaries.
   const [dragColumns, setDragColumns] = useState<ColumnMap | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [dropColumn, setDropColumn] = useState<Status | null>(null)
@@ -120,6 +122,9 @@ export function Board({ tasks, filters, labels, members, onOpenTask }: BoardProp
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
+  // Gaps between cards and the column's padding belong to the column droppable,
+  // so a pointer hit there would snap the preview to the end of the column.
+  // Re-resolve those to the nearest card instead.
   const collisionDetection: CollisionDetection = useCallback(
     (args) => {
       const hits = pointerWithin(args)
@@ -186,6 +191,9 @@ export function Board({ tasks, filters, labels, members, onOpenTask }: BoardProp
     })
   }
 
+  // Resolves neighbours against the FULL column ordering. Using the filtered
+  // view would ignore hidden cards and hand out positions that collide with
+  // them, scrambling the order once filters clear.
   function resolveNeighbors(
     targetColumn: Status,
     visibleIds: string[],
@@ -250,12 +258,16 @@ export function Board({ tasks, filters, labels, members, onOpenTask }: BoardProp
     const previous = queryClient.getQueryData<Task[]>(queryKeys.tasks)
 
     if (needsRenumber(before, after)) {
+      // Gap too small to halve safely; rewrite the whole column instead.
       renumberColumn.mutate({ orderedIds: fullOrder, previous })
       finishDrag()
       return
     }
 
     const move = { id, status: targetColumn, position: positionBetween(before, after) }
+    // Patch synchronously: dnd-kit measures the drop animation during this same
+    // commit, so the card must already sit in its final slot or the ghost
+    // animates back toward where the drag started.
     applyMovePatch(queryClient, move)
     moveTask.mutate({ ...move, previous })
     finishDrag()
@@ -301,6 +313,8 @@ export function Board({ tasks, filters, labels, members, onOpenTask }: BoardProp
       <div
         className={cn(
           'on-gradient-scroll flex h-full gap-3 overflow-x-auto overflow-y-hidden p-3',
+          // Snapping fights dnd-kit's auto-scroll (each increment gets snapped
+          // back), which makes off-screen columns unreachable on a phone.
           activeId === null && 'snap-x snap-mandatory sm:snap-none',
         )}
       >

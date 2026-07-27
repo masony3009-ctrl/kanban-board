@@ -3,6 +3,8 @@ export interface ColorOption {
   value: string
 }
 
+// Every value clears 4.5:1 against white text, since labels and avatars render
+// as solid chips. Keep new entries dark enough to hold that.
 export const PALETTE: ColorOption[] = [
   { name: 'Red', value: '#b91c1c' },
   { name: 'Orange', value: '#c2410c' },

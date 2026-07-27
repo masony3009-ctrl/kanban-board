@@ -59,6 +59,8 @@ function BoardScreen() {
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data])
   const labels = useMemo(() => labelsQuery.data ?? [], [labelsQuery.data])
 
+  // A member or label deleted while it is being filtered on would otherwise
+  // leave a filter nothing can match, with no row left in the popover to clear.
   useEffect(() => {
     if (!membersQuery.isSuccess && !labelsQuery.isSuccess) return
     const memberIds = new Set(members.map((member) => member.id))

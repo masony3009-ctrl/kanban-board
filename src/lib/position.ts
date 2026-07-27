@@ -1,5 +1,7 @@
 export const POSITION_STEP = 1024
 
+// Below this gap, halving again risks rounding to one of the bounds and
+// producing duplicate positions, so the column is renumbered instead.
 export const MIN_POSITION_GAP = 1e-3
 
 export function positionBetween(before: number | undefined, after: number | undefined): number {

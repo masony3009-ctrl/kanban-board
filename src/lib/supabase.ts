@@ -4,6 +4,8 @@ import type { Database } from './database.types'
 const url: string | undefined = import.meta.env.VITE_SUPABASE_URL
 const anonKey: string | undefined = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// When these are missing the app renders a setup screen instead of the board,
+// so the placeholder client below is never actually queried.
 export const isSupabaseConfigured = Boolean(url && anonKey)
 
 export const supabase = createClient<Database>(

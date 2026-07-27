@@ -20,6 +20,8 @@ function friendlySignInError(message: string): string {
   return friendlyError(message, 'Sign-in failed. Please try again.')
 }
 
+// Shared across callers so StrictMode's double effect invocation, and two tabs
+// opening at once, resolve one anonymous user instead of silently creating two.
 let signInFlight: Promise<string> | null = null
 
 async function resolveSession(): Promise<string> {
@@ -59,6 +61,8 @@ export function AuthProvider({ children, loadingFallback, renderError }: AuthPro
 
   const adoptUser = useCallback(
     (userId: string) => {
+      // A different guest owns the session now, e.g. another tab reset it, so
+      // the cached board belongs to the previous identity.
       if (activeUserId.current !== null && activeUserId.current !== userId) {
         queryClient.clear()
       }
@@ -91,6 +95,8 @@ export function AuthProvider({ children, loadingFallback, renderError }: AuthPro
         adoptUser(session.user.id)
         return
       }
+      // Signed out elsewhere, or the token was revoked: every query would come
+      // back empty, so start a fresh guest rather than render a broken board.
       activeUserId.current = null
       queryClient.clear()
       void signIn()

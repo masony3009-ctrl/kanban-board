@@ -3,6 +3,8 @@ import { useCreateTask, type CreateTaskInput } from '@/data/useTasks'
 import { useBoardFilters } from './boardFiltersContext'
 import { hasAnyFilter, taskMatchesFilters, type Task } from '@/types'
 
+// Creating a card while a filter is active can produce one that is immediately
+// hidden, which reads as "nothing happened". Warn instead, with a way out.
 export function useCreateCard() {
   const { filters, clearFilters } = useBoardFilters()
   const createTask = useCreateTask()

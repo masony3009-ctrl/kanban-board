@@ -1,3 +1,6 @@
+// Mirrors supabase/schema.sql; update both together.
+// These must stay `type` aliases: supabase-js constrains rows to
+// Record<string, unknown>, which interfaces do not satisfy.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 type TaskRow = {

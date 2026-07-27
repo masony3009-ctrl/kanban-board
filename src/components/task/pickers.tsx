@@ -185,7 +185,9 @@ export function LabelPicker({ labels, selectedIds, onToggle, children }: LabelPi
       const created = await addLabel.mutateAsync({ name: trimmed, color })
       onToggle(created.id, true)
       setName('')
-    } catch {}
+    } catch {
+      // Already surfaced by the mutation's error toast.
+    }
   }
 
   return (

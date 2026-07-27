@@ -46,6 +46,9 @@ export function TaskDetailDialog({
   onClose,
   onManageTeam,
 }: TaskDetailDialogProps) {
+  // Escape should cancel an in-progress field edit before closing the dialog.
+  // Radix listens for Escape on document in the capture phase, so the guard has
+  // to live here; stopPropagation on the inputs would never reach it.
   const escapeGuard = useRef<(() => boolean) | null>(null)
 
   return (
@@ -118,6 +121,9 @@ function TaskDetailBody({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
 
+  // Realtime keeps `task` fresh while the dialog is open. Adopt an incoming
+  // title unless it is being edited, or blurring an untouched field would
+  // overwrite the newer value with a stale one.
   useEffect(() => {
     if (document.activeElement !== titleRef.current) setTitle(task.title)
   }, [task.title])

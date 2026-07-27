@@ -33,6 +33,9 @@ function bumpCommentCount(tasks: Task[], taskId: string, delta: number): Task[] 
   )
 }
 
+// Rollback restores snapshots rather than applying an inverse delta: a refetch
+// landing between onMutate and onError would make the arithmetic wrong and
+// leave the card's comment badge off by one.
 interface CommentContext {
   previousComments: TaskComment[] | undefined
   previousTasks: Task[] | undefined

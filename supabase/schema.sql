@@ -1,3 +1,12 @@
+-- Run once in the Supabase SQL Editor.
+-- Requires anonymous sign-ins: Authentication -> Sign In / Providers -> User Signups.
+--
+-- Isolation has two layers. RLS scopes every table to auth.uid(). Composite
+-- foreign keys then carry user_id into every relationship, because RLS alone
+-- cannot stop cross-tenant links: user_id defaults to the caller, and Postgres
+-- suppresses row security while checking referential integrity, so a plain
+-- `references tasks (id)` resolves another tenant's row happily.
+
 revoke create on schema public from anon, authenticated;
 
 create table public.tasks (
@@ -10,9 +19,12 @@ create table public.tasks (
   priority    text not null default 'normal'
               check (priority in ('low', 'normal', 'high')),
   due_date    date,
+  -- Fractional: a card dropped between two neighbours takes their midpoint, so
+  -- a move costs one row update. The client renumbers when a gap gets too small.
   position    double precision not null default 1024,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
+  -- Target for the child tables' composite foreign keys.
   unique (id, user_id)
 );
 
@@ -34,6 +46,8 @@ create table public.labels (
   unique (id, user_id)
 );
 
+-- The composite keys below are what make cross-tenant links impossible: both
+-- halves of each pair must resolve to a row owned by the same user_id.
 create table public.task_assignees (
   task_id    uuid not null,
   member_id  uuid not null,
@@ -127,6 +141,7 @@ create policy "Users manage own comments" on public.comments
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
+-- Select only: history is written by the triggers below, never by a client.
 create policy "Users read own task activity" on public.task_activity
   for select to authenticated
   using (user_id = (select auth.uid()));
@@ -146,6 +161,9 @@ create trigger tasks_set_updated_at
   before update on public.tasks
   for each row execute function public.set_updated_at();
 
+-- The logging functions are SECURITY DEFINER so they can write to a table that
+-- is read-only under RLS. search_path is pinned empty and every reference is
+-- schema-qualified, so nothing in a user-controlled schema can be resolved.
 create or replace function public.log_task_created()
 returns trigger
 language plpgsql
@@ -237,10 +255,13 @@ as $$
 declare
   v_name text;
 begin
+  -- Deleting a task cascades here; its activity is going too, so skip logging.
   if not exists (select 1 from public.tasks where id = old.task_id) then
     return old;
   end if;
 
+  -- Deleting a member also cascades here, parent first, so team_members no
+  -- longer has the row. Fall back to the name recorded when it was assigned.
   select coalesce(
     (select name from public.team_members where id = old.member_id),
     (select meta ->> 'member_name'
@@ -299,6 +320,7 @@ begin
     return old;
   end if;
 
+  -- Same cascade ordering as log_assignee_removed.
   select coalesce(
     (select name from public.labels where id = old.label_id),
     (select meta ->> 'label_name'
@@ -340,6 +362,10 @@ create trigger comments_log_added
   after insert on public.comments
   for each row execute function public.log_comment_added();
 
+-- Insert and update events are RLS-filtered. Delete events are not, and cannot
+-- be filtered, so subscribers see other users' deleted primary keys; the client
+-- ignores deletes for rows it does not hold. Replica identity stays at the
+-- default because under RLS the old record is trimmed to the key regardless.
 alter publication supabase_realtime add table
   public.tasks,
   public.team_members,

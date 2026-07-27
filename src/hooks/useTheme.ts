@@ -11,7 +11,9 @@ export function useTheme() {
       document.documentElement.classList.toggle('dark', next === 'dark')
       try {
         localStorage.setItem('kanban-theme', next)
-      } catch {}
+      } catch {
+        // Private-mode storage restrictions: the theme just won't persist.
+      }
       return next
     })
   }, [])
