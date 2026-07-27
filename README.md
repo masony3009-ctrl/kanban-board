@@ -6,9 +6,9 @@ A fast, friendly Kanban board for small teams — create cards, drag them across
 
 ## Features
 
-- **Kanban board** with four columns (To Do, In Progress, In Review, Done), smooth drag-and-drop (mouse, touch, and keyboard via [dnd-kit](https://dndkit.com/)), and Trello-style inline card composers.
+- **Kanban board** with four columns (To Do, In Progress, In Review, Done), smooth drag-and-drop (mouse, touch, and keyboard via [dnd-kit](https://dndkit.com/)), and inline card composers.
 - **Guest sessions** — Supabase anonymous auth creates a private board on first visit. Every table is protected by Row Level Security, so each guest can only ever read or write their own data. Open a private window to see a second, fully isolated guest board.
-- **Card details** — description, priority, due date, labels, and assignees in a Trello-style modal.
+- **Card details** — description, priority, due date, labels, and assignees in a focused card modal.
 - **Team members** — add teammates with colored avatars and assign one or more to a card.
 - **Comments** — threaded conversation per card with timestamps.
 - **Activity log** — every change (status moves, edits, assignments, labels, comments) is recorded **by database triggers** and shown as a timeline ("moved this card from To Do to In Progress · 2 hours ago"). Clients can't forge history: the activity table is read-only for users.
