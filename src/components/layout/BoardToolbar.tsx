@@ -63,7 +63,7 @@ export function BoardToolbar({
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 pt-3">
       <h1 className="text-base font-bold text-white drop-shadow-sm sm:text-lg">Team Board</h1>
 
-      <div className="hidden items-center gap-1.5 md:flex">
+      <div className="flex items-center gap-1.5">
         <StatPill
           icon={<Layers size={12} aria-hidden />}
           label={`${total} ${pluralize(total, 'card')}`}

@@ -35,4 +35,9 @@ grant select on auth.users to anon, authenticated;
 alter default privileges in schema public
   grant all on tables to anon, authenticated;
 
+-- A real Supabase project grants CREATE on schema public to these roles, so the
+-- harness must too. Without it, schema.sql's revoke would remove a privilege
+-- that was never held and the corresponding attack would pass vacuously.
+grant create on schema public to anon, authenticated;
+
 create publication supabase_realtime;

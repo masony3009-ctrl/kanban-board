@@ -75,6 +75,33 @@ function BoardScreen() {
     }
   }, [members, labels, filters, setFilters, membersQuery.isSuccess, labelsQuery.isSuccess])
 
+  // Without this, a failed members or labels fetch is indistinguishable from
+  // genuinely having none: avatars vanish from cards and the pickers show their
+  // empty-state copy. The board itself still works, so this warns rather than
+  // blocking, and offers a retry.
+  const membersFailed = membersQuery.isError
+  const labelsFailed = labelsQuery.isError
+  useEffect(() => {
+    if (!membersFailed && !labelsFailed) return
+    const what =
+      membersFailed && labelsFailed
+        ? 'Team members and labels'
+        : membersFailed
+          ? 'Team members'
+          : 'Labels'
+    toast.error(`${what} could not be loaded, so cards may look incomplete.`, {
+      id: 'reference-data-error',
+      duration: Infinity,
+      action: {
+        label: 'Retry',
+        onClick: () => {
+          if (membersFailed) void membersQuery.refetch()
+          if (labelsFailed) void labelsQuery.refetch()
+        },
+      },
+    })
+  }, [membersFailed, labelsFailed, membersQuery, labelsQuery])
+
   const openTask = openTaskId !== null ? (tasks.find((t) => t.id === openTaskId) ?? null) : null
   const visibleCount = useMemo(
     () => tasks.filter((task) => taskMatchesFilters(task, filters)).length,
