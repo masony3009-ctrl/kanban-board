@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --surface: #ffffff;
+  --surface-2: #f1f2f4;
+  --surface-3: #e8eaee;
+  --card: #ffffff;
+  --ink: #1f2437;
+  --ink-2: #565d6d;
+
+  --ink-3: #5f6b7d;
+  --line: #e2e4e9;
+  --accent: #5b5bd6;
+  --accent-strong: #4c4cc7;
+  --danger: #dc2626;
+  --warn: #b45309;
+  --ok: #178347;
+
+  --danger-ink: #b91c1c;
+  --warn-ink: #92400e;
+  --ok-ink: #15803d;
+  --st-todo: #6b7280;
+  --st-progress: #2563eb;
+  --st-review: #d97706;
+  --st-done: #16a34a;
+  color-scheme: light;
+}
+
+.dark {
+  --surface: #1d2125;
+  --surface-2: #15181b;
+  --surface-3: #2a3036;
+  --card: #22272b;
+  --ink: #e5e9f0;
+  --ink-2: #a3adbb;
+  --ink-3: #8b95a7;
+  --line: #333a41;
+  --accent: #7d81f2;
+  --accent-strong: #9296f6;
+  --danger: #f87171;
+  --warn: #fbbf24;
+  --ok: #4ade80;
+  --danger-ink: #fca5a5;
+  --warn-ink: #fcd34d;
+  --ok-ink: #86efac;
+  --st-todo: #94a3b8;
+  --st-progress: #60a5fa;
+  --st-review: #fbbf24;
+  --st-done: #4ade80;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --color-danger-ink: var(--danger-ink);
+  --color-warn-ink: var(--warn-ink);
+  --color-ok-ink: var(--ok-ink);
+  --color-st-todo: var(--st-todo);
+  --color-st-progress: var(--st-progress);
+  --color-st-review: var(--st-review);
+  --color-st-done: var(--st-done);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface-2 font-sans text-ink antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.board-bg {
+  background-image: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #a855f7 100%);
+}
+.dark .board-bg {
+  background-image: linear-gradient(135deg, #23234d 0%, #33285e 55%, #43286b 100%);
+}
+
+.nice-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 0.25) transparent;
+}
+.nice-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.nice-scroll::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 0.2);
+  border-radius: 8px;
+}
+.nice-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark .nice-scroll {
+  scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+}
+.dark .nice-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.16);
+}
+.on-gradient-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.35) transparent;
+}
+.on-gradient-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.on-gradient-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.3);
+  border-radius: 8px;
+}
+.on-gradient-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@layer components {
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-1 focus-visible:ring-offset-surface;
+  }
+  .focus-ring-on-gradient {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-white/80;
+  }
+}
+
+.card-shadow {
+  box-shadow:
+    0 1px 1px rgb(9 30 66 / 0.13),
+    0 0 1px rgb(9 30 66 / 0.19);
+}
+.dark .card-shadow {
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.45),
+    0 0 1px rgb(0 0 0 / 0.55);
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -49%) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.dialog-overlay[data-state='open'] {
+  animation: overlay-in 140ms ease-out;
+}
+.dialog-content[data-state='open'] {
+  animation: dialog-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.popover-content {
+  transform-origin: var(--radix-popover-content-transform-origin, center);
+}
+.popover-content[data-state='open'] {
+  animation: pop-in 130ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+input[type='date'] {
+  @apply text-ink;
+}
+input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+.dark input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
