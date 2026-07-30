@@ -50,6 +50,7 @@ export function TaskDetailDialog({
   // Radix listens for Escape on document in the capture phase, so the guard has
   // to live here; stopPropagation on the inputs would never reach it.
   const escapeGuard = useRef<(() => boolean) | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   return (
     <Dialog
@@ -60,7 +61,15 @@ export function TaskDetailDialog({
     >
       {task !== null && (
         <DialogContent
+          ref={contentRef}
           className="max-w-2xl p-0"
+          // The title is the first focusable child, so the default autofocus
+          // lands there with the whole title selected and one keystroke would
+          // replace it. Focus the dialog itself instead.
+          onOpenAutoFocus={(event) => {
+            event.preventDefault()
+            contentRef.current?.focus()
+          }}
           onEscapeKeyDown={(event) => {
             if (escapeGuard.current?.()) event.preventDefault()
           }}
